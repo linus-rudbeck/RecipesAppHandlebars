@@ -17,6 +17,11 @@ app.engine('hbs', exphbs.engine({
 
 app.set('view engine', 'hbs')
 
+// Show home page
+app.get('/', (req, res) => {
+    res.render('start')
+})
+
 // Get all recipes    
 app.get('/recipes', async (req, res) => {
     const client = new mongodb.MongoClient("mongodb://127.0.0.1")
@@ -28,7 +33,7 @@ app.get('/recipes', async (req, res) => {
     const dbRecipes = db.collection("Recipes").find()
     const recipes = await dbRecipes.toArray()
 
-    res.render('home', { recipes })
+    res.render('recipes', { recipes })
 })
 
 // Show form to add new recipe
