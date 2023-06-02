@@ -1,14 +1,8 @@
 const mongodb = require('mongodb')
 const express = require('express')
-const exphbs = require('express-handlebars')
-
-// Body parser for getting form data
-const bodyParser = require('body-parser')
+const exphbs =require('express-handlebars')
 
 const app = express()
-
-// Set up body parser for form data
-app.use(bodyParser.urlencoded({ extended: false }))
 
 app.engine('hbs', exphbs.engine({
     extname: '.hbs',
@@ -17,43 +11,35 @@ app.engine('hbs', exphbs.engine({
 
 app.set('view engine', 'hbs')
 
-// Get all recipes    
 app.get('/recipes', async (req, res) => {
     const client = new mongodb.MongoClient("mongodb://127.0.0.1")
     await client.connect()
 
     const db = client.db("MyRecipeDB")
 
-    // Get all recipes
     const dbRecipes = db.collection("Recipes").find()
-    const recipes = await dbRecipes.toArray()
+    const recipes = []
+   
 
-    res.render('home', { recipes })
+    await dbRecipes.forEach(r => {
+     recipes.push(r)
+    })
+
+    res.render('home', {recipes})
 })
 
-// Show form to add new recipe
-app.get('/recipes/new', async (req, res) => {
-    res.render('new')
-})
-
-// Save new recipe
-app.post('/recipes/new', async (req, res) => {
-
-    const recipe = {
-        Title: req.body.title,
-        Summary: req.body.summary,
-        Minutes: req.body.minutes,
-    }
-    
+app.post('/recipes/:id', async (req, res) =>{
+    const _id = new mongodb.ObjectId(req.params.id)
     const client = new mongodb.MongoClient("mongodb://127.0.0.1:27017")
-    client.connect()
+     client.connect()
+
     const db = client.db("MyRecipeDB")
 
-    await db.collection("Recipes").insertOne(recipe);
-
-    res.redirect('/recipes')
+    db.collection("Recipes").findOneAndUpdate({_id: _id}, (err, recipe) => {
+       res.render('recipe', {recipe})
+    
+    })
 })
-
 app.listen(8000, () => {
     console.log("http://127.0.0.1:8000/");
 })
